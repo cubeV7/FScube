@@ -1,0 +1,141 @@
+package databaseManagers;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import beans.Activity;
+import beans.Client;
+import beans.Deposit;
+import interfaces.DepositManager;
+
+public class DepositDBManager implements DepositManager {
+
+  private Connection con;
+
+	public DepositDBManager(Connection con) {
+		this.con = con;
+	}
+
+	@Override
+	public boolean addDeposit(Deposit dep) {
+
+		try {
+			Statement st = con.createStatement();
+
+			String sql = " INSERT INTO Deposit ( client_id, balance, type, estimated_balance, openin_date, closing_date) VALUES (" + 
+					dep.getClientId() + "," +
+					"'" + dep.getBalance() + "' ," +
+					"'" + dep.getType() + "' ," +
+					"'" + dep.getEstimatedBalance() + "' ," +
+					"'" + dep.getOpeningDate() + "' ," +
+					"'" + dep.getClosingDate() + "' )";
+
+			st.executeUpdate(sql, 1);
+
+			ResultSet rs = st.getGeneratedKeys();
+
+			if ( rs != null && rs.next() ){
+				dep.setDepositId(rs.getInt(1));
+			} else {
+				// TODO ERROR on adding
+			}
+
+		} catch (SQLException e) {
+			// TODO
+			e.printStackTrace();
+		}
+		return false; //TODO
+	}
+
+	@Override
+	public boolean updateDeposit(Deposit dep) {
+
+		try {
+			Statement st = con.createStatement();
+
+			st.executeUpdate(" UPDATE `Deposit` " +  
+					"SET `client_id` = " + dep.getClientId() +
+					", `balance` = " + dep.getBalance() +
+					", `type` = " + dep.getType() +
+					", `estimated_balance` = " + dep.getEstimatedBalance() +
+					", `opening_date` = " + dep.getOpeningDate() +
+					", `closing_date` = " + dep.getClosingDate() +"'" + 
+					"WHERE `client_id` = " + dep.getDepositId());
+
+		} catch (SQLException e){
+			e.printStackTrace();
+		}
+		return false; //TODO
+	}
+
+	@Override
+	public Deposit deleteDeposit(long clientId) {
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeUpdate(" DELETE FROM `Deposit` " + 
+					"WHERE `client_id` = " + clientId);
+
+		} catch (SQLException e){
+			// TODO
+			e.printStackTrace();
+		}
+		return null; //TODO
+	}
+
+	@Override
+	public Deposit queryDeposit(long clientId) {
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeQuery(" SELECT * FROM `Deposit` WHERE `client_id` = " + clientId);
+
+			ResultSet rs = st.getResultSet();
+
+			if (rs != null && rs.next()){
+				return new Deposit(rs.getLong(1), rs.getLong(2), rs.getDouble(3), null, rs.getLong(4), rs.getDate(5), rs.getDate(6));
+			} else {
+				return null;
+			}
+
+		} catch (SQLException e){
+			// TODO TODO
+			e.printStackTrace();
+			return null;
+		} 		
+	}
+
+	@Override
+	public List<Deposit> getAllDeposits() {
+		List<Deposit> depList = new ArrayList<Deposit>();
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeQuery(" SELECT * FROM `Activity`");
+
+			ResultSet rs = st.getResultSet();
+
+			if ( rs != null ){
+				while ( rs.next() ){
+					depList.add(new Deposit(rs.getLong(1), rs.getLong(2), rs.getDouble(3), null, rs.getLong(4), rs.getDate(5), rs.getDate(6)));
+				}
+				return depList;
+			} else {
+				// TODO
+				return null;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} 
+	}
+
+}
