@@ -1,0 +1,145 @@
+package databaseManagers;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import beans.Activity;
+import beans.Client;
+import interfaces.ClientManager;
+
+public class ClientDBManager implements ClientManager {
+
+  private Connection con;
+
+	public ClientDBManager(Connection con) {
+		this.con = con;
+	}
+
+	@Override
+	public boolean insertClient(Client client) {
+
+		try {
+			Statement st = con.createStatement();
+
+			String sql = " INSERT INTO Activity ( client_name, password, type, address, emall, phone, comment) VALUES (" + 
+					client.getClientName() + "," +
+					"'" + client.getPassword() + "' ," +
+					"'" + client.getType() + "' ," +
+					"'" + client.getAdress() + "' ," +
+					"'" + client.getEmail() + "' ," +
+					"'" + client.getPhone()+ "' ," + 
+					"'" + client.getComment() + "' )";
+
+			st.executeUpdate(sql, 1);
+
+			ResultSet rs = st.getGeneratedKeys();
+
+			if ( rs != null && rs.next() ){
+				client.setId(rs.getInt(1));
+			} else {
+				// TODO ERROR on adding
+			}
+
+		} catch (SQLException e) {
+			// TODO
+			e.printStackTrace();
+		}
+		return false; //TODO
+
+	}
+
+	@Override
+	public boolean updateClient(Client client) {
+
+		try {
+			Statement st = con.createStatement();
+
+			st.executeUpdate(" UPDATE `Client` " +  
+					"SET `client_name` = " + client.getClientName() +
+					", `password` = " + client.getPassword() +
+					", `type` = " + client.getType() +
+					", `address` = " + client.getAdress() +
+					", `emall` = " + client.getEmail() +
+					", `phone` = " + client.getPhone() +
+					", `comment` = '" + client.getComment() + "'" + 
+					"WHERE `client_id` = " + client.getId());
+
+		} catch (SQLException e){
+			e.printStackTrace();
+		}
+		return false; //TODO
+	}
+
+	@Override
+	public Client deleteClient(long clientId) {
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeUpdate(" DELETE FROM `Client` " + 
+					"WHERE `client_id` = " + clientId);
+
+		} catch (SQLException e){
+			// TODO
+			e.printStackTrace();
+		}
+		return null; //TODO
+	}
+
+	@Override
+	public Client queryClient(long clientId) {
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeQuery(" SELECT * FROM `Client` WHERE `client_id` = " + clientId);
+
+			ResultSet rs = st.getResultSet();
+
+			if (rs != null && rs.next()){
+				return new Client(rs.getLong(1),rs.getString(2), rs.getString(3),
+						null, rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8));
+			} else {
+				return null;
+			}
+
+		} catch (SQLException e){
+			// TODO TODO
+			e.printStackTrace();
+			return null;
+		} 		
+	}
+
+	@Override
+	public List<Client> getAllClients() {		
+		List<Client> clientList = new ArrayList<Client>();
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeQuery(" SELECT * FROM `Activity`");
+
+			ResultSet rs = st.getResultSet();
+
+			if ( rs != null ){
+				while ( rs.next() ){
+					clientList.add(new Client(rs.getLong(1),rs.getString(2), rs.getString(3),
+							null, rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8)));
+				}
+				return clientList;
+			} else {
+				// TODO
+				return null;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} 
+	}
+
+}
