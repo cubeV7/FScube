@@ -1,0 +1,139 @@
+package databaseManagers;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import beans.Account;
+import beans.Activity;
+import interfaces.ActivityManager;
+
+public class ActivityDBManager implements ActivityManager {
+
+  private Connection con;
+
+	public ActivityDBManager(Connection con) {
+		this.con = con;
+	}
+
+	@Override
+	public boolean addActivity(Activity act) {
+
+		try {
+			Statement st = con.createStatement();
+
+			String sql = " INSERT INTO Activity ( client_id, amount, activity_date, commision, description) VALUES (" + 
+					act.getClientId() + "," +
+					"'" + act.getAmount() + "' ," +
+					"'" + act.getActivitiDate()+ "' ," + 
+					"'" + act.getDescription() + "' )";
+
+			st.executeUpdate(sql, 1);
+
+			ResultSet rs = st.getGeneratedKeys();
+
+			if ( rs != null && rs.next() ){
+				act.setId(rs.getInt(1));
+			} else {
+				// TODO ERROR on adding
+			}
+
+		} catch (SQLException e) {
+			// TODO
+			e.printStackTrace();
+		}
+		return false; //TODO
+
+
+	}
+
+	@Override
+	public boolean updateActivity(Activity act) {
+
+		try {
+			Statement st = con.createStatement();
+
+			st.executeUpdate(" UPDATE `Activity` " +  
+					"SET `amount` = " + act.getAmount() +
+					", `activity_date` = " + act.getActivitiDate() +
+					", `description` = '" + act.getDescription() + "'" + 
+					"WHERE `id` = " + act.getId());
+
+		} catch (SQLException e){
+			e.printStackTrace();
+		}
+		return false; //TODO
+	}
+
+	@Override
+	public Activity deleteActivity(long clientId) {
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeUpdate(" DELETE FROM `Activity` " + 
+					"WHERE `id` = " + clientId);
+
+		} catch (SQLException e){
+			// TODO
+			e.printStackTrace();
+		}
+		return null; //TODO
+	}
+
+	@Override
+	public Activity queryActivity(long clientId) {
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeQuery(" SELECT * FROM `Activity` WHERE `client_id` = " + clientId);
+
+			ResultSet rs = st.getResultSet();
+
+			if (rs != null && rs.next()){
+				return new Activity(rs.getLong(1), rs.getLong(2), rs.getDouble(3), rs.getDate(4), rs.getString(5));
+			} else {
+				return null;
+			}
+
+		} catch (SQLException e){
+			// TODO TODO
+			e.printStackTrace();
+			return null;
+		} 		
+
+	}
+
+	@Override
+	public List<Activity> getAllActivities() {
+		List<Activity> actList = new ArrayList<Activity>();
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeQuery(" SELECT * FROM `Activity`");
+
+			ResultSet rs = st.getResultSet();
+
+			if ( rs != null ){
+				while ( rs.next() ){
+					actList.add(new Activity(rs.getLong(1), rs.getLong(2), rs.getDouble(3), rs.getDate(0), rs.getString(5)));
+				}
+				return actList;
+			} else {
+				// TODO
+				return null;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} 
+	}
+
+
+}
