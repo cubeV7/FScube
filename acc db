@@ -1,0 +1,132 @@
+package databaseManagers;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import beans.Account;
+import interfaces.AccountManager;
+
+public class AccountDBManager implements AccountManager {
+
+  private Connection con;
+
+	public AccountDBManager(Connection con) {
+		this.con = con;
+	}
+
+	@Override
+	public void addAccount(Account acc) {
+
+		try {
+			Statement st = con.createStatement();
+
+			String sql = " INSERT INTO Account ( client_id, balance, credit_limit, comment) VALUES (" + 
+					acc.getClientId() + "," +
+					"'" + acc.getBalance() + "' ," +
+					"'" + acc.getCreditLimit()+ "' ," + 
+					"'" + acc.getComment() + "' )";
+
+			st.executeUpdate(sql, 1);
+
+			ResultSet rs = st.getGeneratedKeys();
+
+			if ( rs != null && rs.next() ){
+				acc.setAccountId(rs.getInt(1));
+			} else {
+				// TODO ERROR on adding
+			}
+
+		} catch (SQLException e) {
+			// TODO
+			e.printStackTrace();
+		}
+
+
+	}
+
+	@Override
+	public void updateAccount(Account acc) {
+
+		try {
+			Statement st = con.createStatement();
+
+			st.executeUpdate(" UPDATE `Account` " +  
+					"SET `balance` = " + acc.getBalance() +
+					", `credit_limit` = " + acc.getCreditLimit() +
+					", `comment` = '" + acc.getComment() + "'" + 
+					"WHERE `account_id` = " + acc.getAccountId());
+
+		} catch (SQLException e){
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void deleteAccount(long id) {
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeUpdate(" DELETE FROM `Account` " + 
+					"WHERE `account_id` = " + id);
+
+		} catch (SQLException e){
+			// TODO
+			e.printStackTrace();
+		} 
+	}
+
+	@Override
+	public Account queryAccount(long id) {
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeQuery(" SELECT * FROM `Account` WHERE `account_id` = " + id);
+
+			ResultSet rs = st.getResultSet();
+
+			if (rs != null && rs.next()){
+				return new Account(rs.getLong(1),rs.getLong(2),rs.getDouble(3),rs.getDouble(4),rs.getString(5));
+			} else {
+				return null;
+			}
+
+		} catch (SQLException e){
+			// TODO TODO
+			e.printStackTrace();
+			return null;
+		} 
+	}
+
+	@Override
+	public List<Account> getAllAccounts() {
+		List<Account> accList = new ArrayList<Account>();
+
+		try{
+			Statement st = con.createStatement();
+
+			st.executeQuery(" SELECT * FROM `Account`");
+
+			ResultSet rs = st.getResultSet();
+
+			if ( rs != null ){
+				while ( rs.next() ){
+					accList.add(new Account(rs.getLong(1),rs.getLong(2),rs.getDouble(3),rs.getDouble(4),rs.getString(5)));
+				}
+				return accList;
+			} else {
+				// TODO
+				return null;
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		} 
+	}
+}
